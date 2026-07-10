@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="lbr_with_camera" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Include the full KUKA iiwa14 arm (links, joints, Gazebo, ros2_control) -->
+  <xacro:include filename="$(find lbr_ros2_control)/system_integration/iiwa14/iiwa14.xacro" />
+
+  <!-- Include the camera definition and attach it to lbr_link_ee -->
+  <xacro:include filename="$(find kuka_camera_simulation)/urdf/camera.xacro" />
+
+</robot>
