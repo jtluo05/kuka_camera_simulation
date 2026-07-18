@@ -8,3 +8,4 @@
   <xacro:include filename="$(find kuka_camera_simulation)/urdf/camera.xacro" />
 
 </robot>
+

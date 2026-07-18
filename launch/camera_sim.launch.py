@@ -1,6 +1,6 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
@@ -45,7 +45,18 @@ def generate_launch_description() -> LaunchDescription:
             # Start Gazebo (empty world)
             IncludeLaunchDescription(
                 FindPackageShare("ros_gz_sim") / "launch" / "gz_sim.launch.py",
-                launch_arguments={"gz_args": "-r empty.sdf"}.items(),
+                launch_arguments={
+                    "gz_args": [
+                        "-r ",
+                        PathJoinSubstitution(
+                            [
+                                FindPackageShare("kuka_camera_simulation"),
+                                "worlds",
+                                "camera_test.world",
+                            ]
+                        ),
+                    ]
+                }.items(),
             ),
 
             # Bridge simulation clock
