@@ -22,7 +22,7 @@
   <joint name="camera_joint" type="fixed">
     <parent link="lbr_link_ee"/>
     <child link="camera_link"/>
-    <origin xyz="0 0 0.02" rpy="0 -1.5708 0"/>
+    <origin xyz="0 0 0.02" rpy="3.14159 -1.5708 0"/>
   </joint>
   <gazebo reference="camera_link">
     <sensor type="camera" name="end_effector_camera">

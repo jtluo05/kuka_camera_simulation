@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<sdf version="1.8">
+  <model name="db_face">
+    <static>true</static>
+    <link name="face_link">
+      <visual name="face_visual">
+        <pose>-0.0315 -0.007 -0.342 1.5708 0 1.5708</pose>
+        <geometry>
+          <mesh>
+            <uri>meshes/DB_Face.glb</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

@@ -4,8 +4,6 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
-
-
 def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
@@ -14,7 +12,6 @@ def generate_launch_description() -> LaunchDescription:
                 default_value="lbr",
                 description="Robot name / namespace.",
             ),
-
             # Build the combined arm+camera robot description from our xacro
             Node(
                 package="robot_state_publisher",
@@ -41,7 +38,6 @@ def generate_launch_description() -> LaunchDescription:
                 ],
                 namespace=LaunchConfiguration("robot_name"),
             ),
-
             # Start Gazebo (empty world)
             IncludeLaunchDescription(
                 FindPackageShare("ros_gz_sim") / "launch" / "gz_sim.launch.py",
@@ -58,27 +54,24 @@ def generate_launch_description() -> LaunchDescription:
                     ]
                 }.items(),
             ),
-
             # Bridge simulation clock
             Node(
                 package="ros_gz_bridge",
                 executable="parameter_bridge",
-		name="clock_bridge",
+                name="clock_bridge",
                 arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
                 output="screen",
             ),
-
             # Bridge the camera image topic from Gazebo into ROS 2
             Node(
                 package="ros_gz_bridge",
                 executable="parameter_bridge",
-		name="camera_bridge",
+                name="camera_bridge",
                 arguments=[
                     "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image"
                 ],
                 output="screen",
             ),
-
             # Spawn the combined model in Gazebo
             Node(
                 package="ros_gz_sim",
@@ -92,7 +85,23 @@ def generate_launch_description() -> LaunchDescription:
                 output="screen",
                 namespace=LaunchConfiguration("robot_name"),
             ),
-
+            # Spawn the scanned face in front of the camera
+            Node(
+                package="ros_gz_sim",
+                executable="create",
+                arguments=[
+                    "-world", "empty",
+                    "-file", PathJoinSubstitution(
+                        [
+                            FindPackageShare("kuka_camera_simulation"),
+                            "models", "db_face", "model.sdf",
+                        ]
+                    ),
+                    "-name", "db_face",
+                    "-x", "-0.9", "-y", "0", "-z", "1.2", "-R", "0", "-P", "0.1745", "-Y", "0",
+                ],
+                output="screen",
+            ),
             # Load controllers
             Node(
                 package="controller_manager",
