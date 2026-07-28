@@ -10,10 +10,13 @@ def launch_setup(context, *args, **kwargs):
     robot_name = LaunchConfiguration("robot_name").perform(context)
     camera = LaunchConfiguration("camera").perform(context)
 
+    # Pick the right URDF and image topic based on camera argument
     if camera == "realsense":
         urdf_file = "lbr_with_realsense.xacro"
+        image_topic = "/camera/color/image_raw"
     else:
         urdf_file = "lbr_with_camera.xacro"
+        image_topic = "/camera/image_raw"
 
     robot_description = ParameterValue(
         Command([
@@ -30,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes = [
+        # Robot state publisher
         Node(
             package="robot_state_publisher",
             executable="robot_state_publisher",
@@ -40,6 +44,7 @@ def launch_setup(context, *args, **kwargs):
             ],
             namespace=robot_name,
         ),
+        # Gazebo
         IncludeLaunchDescription(
             FindPackageShare("ros_gz_sim") / "launch" / "gz_sim.launch.py",
             launch_arguments={
@@ -53,6 +58,7 @@ def launch_setup(context, *args, **kwargs):
                 ]
             }.items(),
         ),
+        # Clock bridge
         Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
@@ -60,6 +66,17 @@ def launch_setup(context, *args, **kwargs):
             arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
             output="screen",
         ),
+        # Color image bridge (works for both cameras)
+        Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            name="camera_bridge",
+            arguments=[
+                f"{image_topic}@sensor_msgs/msg/Image[gz.msgs.Image"
+            ],
+            output="screen",
+        ),
+        # Spawn robot
         Node(
             package="ros_gz_sim",
             executable="create",
@@ -72,6 +89,7 @@ def launch_setup(context, *args, **kwargs):
             output="screen",
             namespace=robot_name,
         ),
+        # Spawn face
         Node(
             package="ros_gz_sim",
             executable="create",
@@ -87,6 +105,7 @@ def launch_setup(context, *args, **kwargs):
             ],
             output="screen",
         ),
+        # Controllers
         Node(
             package="controller_manager",
             executable="spawner",
@@ -100,43 +119,14 @@ def launch_setup(context, *args, **kwargs):
         ),
     ]
 
+    # Add depth bridge only when using RealSense
     if camera == "realsense":
-        # Gazebo natively publishes hardware-style topic names
-        # (confirmed via: gz topic -l). Bridge them 1:1 into ROS.
-        nodes.append(Node(
-            package="ros_gz_bridge",
-            executable="parameter_bridge",
-            name="camera_color_bridge",
-            arguments=[
-                "/camera/color/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
-            ],
-            output="screen",
-        ))
         nodes.append(Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
             name="camera_depth_bridge",
             arguments=[
-                "/camera/depth/image_rect_raw@sensor_msgs/msg/Image[gz.msgs.Image",
-            ],
-            output="screen",
-        ))
-        nodes.append(Node(
-            package="ros_gz_bridge",
-            executable="parameter_bridge",
-            name="camera_info_bridge",
-            arguments=[
-                "/camera/color/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
-            ],
-            output="screen",
-        ))
-    else:
-        nodes.append(Node(
-            package="ros_gz_bridge",
-            executable="parameter_bridge",
-            name="camera_bridge",
-            arguments=[
-                "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
+                "/camera/depth/image_rect_raw@sensor_msgs/msg/Image[gz.msgs.Image"
             ],
             output="screen",
         ))
@@ -154,7 +144,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name="camera",
             default_value="simple",
-            description="Camera type: simple or realsense.",
+            description="Camera type: 'simple' for original camera, 'realsense' for D435.",
         ),
         OpaqueFunction(function=launch_setup),
     ])

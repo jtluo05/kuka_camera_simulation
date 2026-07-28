@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <link name="realsense_link">
+    <visual>
+      <geometry>
+        <box size="0.02 0.09 0.025"/>
+      </geometry>
+      <material name="realsense_gray">
+        <color rgba="0.3 0.3 0.3 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="0.072"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <joint name="realsense_joint" type="fixed">
+    <parent link="lbr_link_ee"/>
+    <child link="realsense_link"/>
+    <origin xyz="0 0 0.02" rpy="3.14159 -1.5708 0"/>
+  </joint>
+
+  <gazebo reference="realsense_link">
+    <sensor name="realsense_color" type="camera">
+      <update_rate>30.0</update_rate>
+      <topic>camera/color/image_raw</topic>
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>10</far>
+        </clip>
+      </camera>
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+    </sensor>
+    <sensor name="realsense_depth" type="depth_camera">
+      <update_rate>30.0</update_rate>
+      <topic>camera/depth/image_rect_raw</topic>
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R_FLOAT32</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>10</far>
+        </clip>
+      </camera>
+      <always_on>true</always_on>
+      <visualize>false</visualize>
+    </sensor>
+  </gazebo>
+
+</robot>

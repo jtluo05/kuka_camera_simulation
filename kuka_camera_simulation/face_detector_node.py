@@ -33,6 +33,7 @@ class FaceDetectorNode(Node):
 
         # Tunable via: ros2 run ... --ros-args -p min_detection_confidence:=0.3
         self.declare_parameter('min_detection_confidence', 0.5)
+        self.declare_parameter('image_topic', '/camera/image_raw')
         conf = self.get_parameter('min_detection_confidence').value
 
         model_path = os.path.join(
@@ -55,7 +56,7 @@ class FaceDetectorNode(Node):
         self.error_pub = self.create_publisher(Point, '/face_tracking/error', 10)
         self.debug_pub = self.create_publisher(Image, '/face_tracking/debug_image', 10)
         self.image_sub = self.create_subscription(
-            Image, '/camera/image_raw', self.image_callback, 10)
+            Image, self.get_parameter('image_topic').value, self.image_callback, 10)
 
         self.get_logger().info(f'Face detector running (model: {model_path})')
 
