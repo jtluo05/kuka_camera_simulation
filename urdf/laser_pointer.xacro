@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Laser pointer emitter: small black module stacked directly above
+    the camera, as close as physically plausible (1.5cm center-to-center).
+    No beam geometry — the beam is represented by a projected dot
+    (see laser_dot_node), which appears where the laser hits a surface.
+  -->
+
+  <link name="laser_pointer_link">
+    <visual>
+      <origin xyz="0.01 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.006" length="0.04"/>
+      </geometry>
+      <material name="laser_body_black">
+        <color rgba="0.05 0.05 0.05 1"/>
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="0.031 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.004" length="0.004"/>
+      </geometry>
+      <material name="laser_aperture_gray">
+        <color rgba="0.4 0.4 0.4 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="0.03"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+  </link>
+
+  <joint name="laser_pointer_joint" type="fixed">
+    <parent link="lbr_link_ee"/>
+    <child link="laser_pointer_link"/>
+    <!-- 1.5cm above the camera mount; flip sign of the -0.015 if it
+         renders below the camera instead of above -->
+    <origin xyz="0.015 0 0.02" rpy="3.14159 -1.5708 0"/>
+  </joint>
+
+</robot>

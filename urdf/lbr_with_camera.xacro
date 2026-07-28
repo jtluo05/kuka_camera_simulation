@@ -7,5 +7,7 @@
   <!-- Include the camera definition and attach it to lbr_link_ee -->
   <xacro:include filename="$(find kuka_camera_simulation)/urdf/camera.xacro" />
 
+  <!-- Virtual laser pointer beside the camera -->
+  <xacro:include filename="$(find kuka_camera_simulation)/urdf/laser_pointer.xacro" />
 </robot>
 

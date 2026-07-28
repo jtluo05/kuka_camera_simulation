@@ -88,6 +88,20 @@ def launch_setup(context, *args, **kwargs):
             output="screen",
         ),
         Node(
+            package="ros_gz_sim",
+            executable="create",
+            arguments=[
+                "-world", "empty",
+                "-file", PathJoinSubstitution([
+                    FindPackageShare("kuka_camera_simulation"),
+                    "models", "laser_dot", "model.sdf",
+                ]),
+                "-name", "laser_dot",
+                "-x", "0", "-y", "0", "-z", "-5.0",
+            ],
+            output="screen",
+        ),
+        Node(
             package="controller_manager",
             executable="spawner",
             output="screen",

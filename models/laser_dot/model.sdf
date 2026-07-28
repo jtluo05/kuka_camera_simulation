@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<sdf version="1.8">
+  <model name="laser_dot">
+    <static>true</static>
+    <link name="dot_link">
+      <visual name="dot_visual">
+        <geometry><sphere><radius>0.004</radius></sphere></geometry>
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <emissive>1 0 0 1</emissive>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

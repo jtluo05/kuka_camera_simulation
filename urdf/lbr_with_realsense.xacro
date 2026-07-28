@@ -4,4 +4,6 @@
   <xacro:include filename="$(find lbr_ros2_control)/system_integration/iiwa14/iiwa14.xacro" />
   <!-- Include the RealSense D435 camera -->
   <xacro:include filename="$(find kuka_camera_simulation)/urdf/realsense_camera.xacro" />
+  <!-- Virtual laser pointer beside the camera -->
+  <xacro:include filename="$(find kuka_camera_simulation)/urdf/laser_pointer.xacro" />
 </robot>
