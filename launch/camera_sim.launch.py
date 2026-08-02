@@ -82,7 +82,7 @@ def launch_setup(context, *args, **kwargs):
                     "models", "db_face", "model.sdf",
                 ]),
                 "-name", "db_face",
-                "-x", "-0.9", "-y", "0", "-z", "1.2",
+                "-x", "-0.8", "-y", "0", "-z", "1.15",
                 "-R", "0", "-P", "0.1745", "-Y", "0",
             ],
             output="screen",
