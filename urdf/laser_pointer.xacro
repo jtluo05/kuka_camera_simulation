@@ -10,9 +10,9 @@
     z = distance up/down from center
     ============================================================
   -->
-  <xacro:property name="inst_x"   value="0.075"/>
-  <xacro:property name="inst_y"   value="0.075"/>
-  <xacro:property name="inst_z"   value="0.0"/>
+  <xacro:property name="inst_x"   value="0.0"/>
+  <xacro:property name="inst_y"   value="0.044"/>
+  <xacro:property name="inst_z"   value="0.075"/>
   <xacro:property name="inst_rpy" value="3.14159 -1.5708 0"/>
 
   <!-- Instrument body (dermascope placeholder) -->
