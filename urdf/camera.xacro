@@ -1,5 +1,21 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    ============================================================
+    MOUNT CONFIGURATION — change these numbers when mount changes
+    All values in meters, in lbr_link_ee local frame:
+      x = distance out from flange face (toward patient)
+      y = distance right of center (positive = patient sees it left)
+      z = distance up/down from center (0 = in line)
+    rpy = orientation to make camera face -X in world (verified working)
+    ============================================================
+  -->
+  <xacro:property name="cam_x"   value="0.075"/>
+  <xacro:property name="cam_y"   value="0.031"/>
+  <xacro:property name="cam_z"   value="0.0"/>
+  <xacro:property name="cam_rpy" value="3.14159 -1.5708 0"/>
+
   <link name="camera_link">
     <visual>
       <geometry>
@@ -16,14 +32,17 @@
     </collision>
     <inertial>
       <mass value="0.05"/>
-      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0"
+               iyy="0.0001" iyz="0" izz="0.0001"/>
     </inertial>
   </link>
+
   <joint name="camera_joint" type="fixed">
     <parent link="lbr_link_ee"/>
     <child link="camera_link"/>
-    <origin xyz="0 0 0.02" rpy="3.14159 -1.5708 0"/>
+    <origin xyz="${cam_x} ${cam_y} ${cam_z}" rpy="${cam_rpy}"/>
   </joint>
+
   <gazebo reference="camera_link">
     <sensor type="camera" name="end_effector_camera">
       <update_rate>30.0</update_rate>
@@ -44,4 +63,5 @@
       <visualize>true</visualize>
     </sensor>
   </gazebo>
+
 </robot>

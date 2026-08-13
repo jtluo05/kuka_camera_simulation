@@ -2,43 +2,50 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!--
-    Laser pointer emitter: small black module stacked directly above
-    the camera, as close as physically plausible (1.5cm center-to-center).
-    No beam geometry — the beam is represented by a projected dot
-    (see laser_dot_node), which appears where the laser hits a surface.
+    ============================================================
+    INSTRUMENT MOUNT CONFIGURATION
+    Change these numbers when the instrument position changes.
+    x = distance out from flange face (toward patient)
+    y = distance right of center
+    z = distance up/down from center
+    ============================================================
   -->
+  <xacro:property name="inst_x"   value="0.075"/>
+  <xacro:property name="inst_y"   value="0.075"/>
+  <xacro:property name="inst_z"   value="0.0"/>
+  <xacro:property name="inst_rpy" value="3.14159 -1.5708 0"/>
 
+  <!-- Instrument body (dermascope placeholder) -->
   <link name="laser_pointer_link">
     <visual>
       <origin xyz="0.01 0 0" rpy="0 1.5708 0"/>
       <geometry>
-        <cylinder radius="0.006" length="0.04"/>
+        <cylinder radius="0.008" length="0.04"/>
       </geometry>
-      <material name="laser_body_black">
+      <material name="instrument_black">
         <color rgba="0.05 0.05 0.05 1"/>
       </material>
     </visual>
     <visual>
       <origin xyz="0.031 0 0" rpy="0 1.5708 0"/>
       <geometry>
-        <cylinder radius="0.004" length="0.004"/>
+        <cylinder radius="0.005" length="0.005"/>
       </geometry>
-      <material name="laser_aperture_gray">
+      <material name="instrument_gray">
         <color rgba="0.4 0.4 0.4 1"/>
       </material>
     </visual>
     <inertial>
       <mass value="0.03"/>
-      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0"
+               iyy="0.00001" iyz="0" izz="0.00001"/>
     </inertial>
   </link>
 
   <joint name="laser_pointer_joint" type="fixed">
     <parent link="lbr_link_ee"/>
     <child link="laser_pointer_link"/>
-    <!-- 1.5cm above the camera mount; flip sign of the -0.015 if it
-         renders below the camera instead of above -->
-    <origin xyz="0.015 0 0.02" rpy="3.14159 -1.5708 0"/>
+    <origin xyz="${inst_x} ${inst_y} ${inst_z}" rpy="${inst_rpy}"/>
   </joint>
 
 </robot>
