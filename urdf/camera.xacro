@@ -11,10 +11,10 @@
     rpy = orientation to make camera face -X in world (verified working)
     ============================================================
   -->
-  <xacro:property name="cam_x"   value="0.0"/>
+  <xacro:property name="cam_x"   value="-0.06465"/>
   <xacro:property name="cam_y"   value="0.0"/>
-  <xacro:property name="cam_z"   value="0.075"/>
-  <xacro:property name="cam_rpy" value="3.14159 -1.5708 0"/>
+  <xacro:property name="cam_z"   value="0.03005"/>
+  <xacro:property name="cam_rpy" value="1.5708 -1.5708 1.5708"/>
 
   <link name="camera_link">
     <visual>
