@@ -34,6 +34,9 @@ setup(
     entry_points={
         'console_scripts': [
             'raster_sweep = kuka_camera_simulation.raster_sweep:main',
+            'raster_sweep_pixel = kuka_camera_simulation.raster_sweep_pixel:main',
+            'raster_sweep_landmark = kuka_camera_simulation.raster_sweep_landmark:main',
+            'landmark_viewer = kuka_camera_simulation.landmark_viewer:main',
             'raster_planner = kuka_camera_simulation.raster_planner:main',
             'laser_dot_node = kuka_camera_simulation.laser_dot_node:main',
             'face_tracker_controller = kuka_camera_simulation.face_tracker_controller:main',

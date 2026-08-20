@@ -29,8 +29,8 @@ from ament_index_python.packages import get_package_share_directory
 import tf2_ros
 
 NOSE_TIP_INDEX = 1
-FOCAL_PX = 553.8          # 640px wide, 1.047 rad HFOV
-IMG_W, IMG_H = 640, 480
+FOCAL_PX = 913.0          # 640px wide, 1.047 rad HFOV
+IMG_W, IMG_H = 1280, 720
 
 
 def rotate_vec_by_quat(vx, vy, vz, q):
@@ -77,6 +77,10 @@ class FaceDetectorNode(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+        # Smoothing buffer for world position — average over N frames
+        # reduces noise from depth sensor fluctuations
+        self._world_pos_buffer = []
+        self._world_pos_buffer_size = 5
 
         self.error_pub = self.create_publisher(
             Point, '/face_tracking/error', 10)
@@ -108,10 +112,11 @@ class FaceDetectorNode(Node):
         v = max(2, min(h - 3, int(v)))
         patch = depth[v - 2:v + 3, u - 2:u + 3].astype(float)
         finite = patch[np.isfinite(patch)]
-        finite = finite[finite > 0.05]
+        # 16UC1 depth is in millimeters — convert to meters
+        finite = finite[finite > 50]   # ignore readings under 50mm
         if finite.size == 0:
             return None
-        return float(np.median(finite))
+        return float(np.median(finite)) / 1000.0  # mm -> meters
 
     def nose_world_position(self, nose_u, nose_v):
         """Back-project the nose pixel into world coordinates.
@@ -121,7 +126,7 @@ class FaceDetectorNode(Node):
             return None
         try:
             tfm = self.tf_buffer.lookup_transform(
-                'world', 'realsense_link', rclpy.time.Time())
+                'lbr_link_0', 'realsense_link', rclpy.time.Time())
         except Exception:
             return None
 
@@ -167,8 +172,15 @@ class FaceDetectorNode(Node):
             # C1: physical world position of the nose tip
             wp = self.nose_world_position(nose.x * w, nose.y * h)
             if wp is not None:
+                self._world_pos_buffer.append(wp)
+                if len(self._world_pos_buffer) > self._world_pos_buffer_size:
+                    self._world_pos_buffer.pop(0)
+                # publish smoothed average
+                sx = sum(p[0] for p in self._world_pos_buffer) / len(self._world_pos_buffer)
+                sy = sum(p[1] for p in self._world_pos_buffer) / len(self._world_pos_buffer)
+                sz = sum(p[2] for p in self._world_pos_buffer) / len(self._world_pos_buffer)
                 world_msg = Point()
-                world_msg.x, world_msg.y, world_msg.z = wp
+                world_msg.x, world_msg.y, world_msg.z = sx, sy, sz
                 self.world_pub.publish(world_msg)
         else:
             error.x = 0.0

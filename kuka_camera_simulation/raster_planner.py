@@ -21,16 +21,16 @@ from rclpy.node import Node
 # ---------------------------------------------------------------
 ZONES = {
     'forehead': {
-        'y_min': -0.064, 'y_max': 0.064,   # ~12.8 cm wide (widened 1.9cm/side)
-        'z_min': 1.240, 'z_max': 1.280,    # bottom row removed (eyebrows), face at z=1.15
+        'y_min': -0.064, 'y_max': 0.064,   # 12.8cm wide centered on nose
+        'z_min': 0.700,  'z_max': 0.740,   # 4cm tall, ~70-74cm above nose in z
     },
     'left_cheek': {
-        'y_min': 0.025, 'y_max': 0.070,    # patient's left cheek
-        'z_min': 1.130, 'z_max': 1.185,
+        'y_min':  0.025, 'y_max': 0.070,
+        'z_min': -0.060, 'z_max':  0.000,
     },
     'right_cheek': {
         'y_min': -0.070, 'y_max': -0.025,
-        'z_min': 1.130, 'z_max': 1.185,
+        'z_min': -0.060, 'z_max':  0.000,
     },
 }
 

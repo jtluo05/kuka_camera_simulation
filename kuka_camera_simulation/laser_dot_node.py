@@ -68,10 +68,10 @@ class LaserDotNode(Node):
         cy = max(2, min(h - 3, cy))
         patch = depth[cy - 2:cy + 3, cx - 2:cx + 3].astype(float)
         finite = patch[np.isfinite(patch)]
-        finite = finite[finite > 0.05]
+        finite = finite[finite > 50]   # 16UC1 in mm, ignore under 50mm
         if finite.size == 0:
             return None
-        return float(np.median(finite))
+        return float(np.median(finite)) / 1000.0  # mm -> meters
 
     def update_dot(self):
         if self.latest_depth is None:
@@ -107,7 +107,7 @@ class LaserDotNode(Node):
 
         try:
             tfm = self.tf_buffer.lookup_transform(
-                'world', 'realsense_link', rclpy.time.Time())
+                'lbr_link_0', 'realsense_link', rclpy.time.Time())
         except Exception:
             return
 

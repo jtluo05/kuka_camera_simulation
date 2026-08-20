@@ -1,15 +1,11 @@
 """Tracking controller: drives lbr_A1 (pan) and lbr_A6 (tilt) to keep the
-detected face centered in the camera image.
+detected face centered in the camera image, with configurable laser offset bias.
 
-Subscribes: /face_tracking/error  (geometry_msgs/Point)  from face_detector_node
-            /lbr/joint_states     (sensor_msgs/JointState)
-Publishes:  /lbr/joint_trajectory_controller/joint_trajectory (JointTrajectory)
+x_bias: positive = target moves RIGHT in image (nose left of laser = laser right of nose)
+y_bias: positive = target moves DOWN in image (nose above laser = laser below nose)
 
-Control law (proportional, per control tick):
-    delta_A1 = pan_gain  * error.x   (clipped to +/- max_step)
-    delta_A6 = tilt_gain * error.y   (clipped to +/- max_step)
-If gains have the wrong sign the robot will run AWAY from the face —
-fix by negating the parameter, e.g. -p pan_gain:=0.8 instead of -0.8.
+For laser 1 inch below and right of nose:
+  set x_bias negative (move target left) and y_bias negative (move target up)
 """
 import rclpy
 from rclpy.node import Node
@@ -20,20 +16,23 @@ from builtin_interfaces.msg import Duration
 
 JOINT_NAMES = ['lbr_A1', 'lbr_A2', 'lbr_A3', 'lbr_A4',
                'lbr_A5', 'lbr_A6', 'lbr_A7']
-# conservative software limits (rad), inside the iiwa14 hardware limits
 LIMITS = {'lbr_A1': 2.9, 'lbr_A6': 2.0}
-
 
 class FaceTrackerController(Node):
     def __init__(self):
         super().__init__('face_tracker_controller')
-
-        self.declare_parameter('pan_gain', -0.8)    # rad per unit error.x
-        self.declare_parameter('tilt_gain', -0.8)   # rad per unit error.y
-        self.declare_parameter('deadband', 0.02)    # ignore errors smaller than this
-        self.declare_parameter('max_step', 0.04)    # rad, max change per tick
-        self.declare_parameter('rate_hz', 10.0)     # control loop rate
-        self.declare_parameter('error_timeout', 0.5)  # s, hold if error is stale
+        self.declare_parameter('pan_gain', -0.8)
+        self.declare_parameter('tilt_gain', -0.8)
+        self.declare_parameter('deadband', 0.02)
+        self.declare_parameter('max_step', 0.04)
+        self.declare_parameter('rate_hz', 10.0)
+        self.declare_parameter('error_timeout', 0.5)
+        # Laser offset bias in normalized image coordinates (0.0-1.0 range)
+        # x_bias: positive shifts aim RIGHT, negative shifts aim LEFT
+        # y_bias: positive shifts aim DOWN, negative shifts aim UP
+        # Start at 0.0 and tune at runtime with --ros-args -p x_bias:=VALUE
+        self.declare_parameter('x_bias', 0.0)
+        self.declare_parameter('y_bias', 0.0)
 
         self.latest_error = None
         self.latest_error_time = None
@@ -60,28 +59,37 @@ class FaceTrackerController(Node):
             self.joint_pos[name] = pos
 
     def control_tick(self):
-        # need joint states and a fresh, valid detection
         if len(self.joint_pos) < len(JOINT_NAMES):
             return
         if self.latest_error is None or self.latest_error.z < 0.5:
-            return  # no face -> hold position
+            return
         age = (self.get_clock().now() - self.latest_error_time).nanoseconds / 1e9
         if age > self.get_parameter('error_timeout').value:
-            return  # stale detection -> hold
+            return
 
         err = self.latest_error
+        x_bias = self.get_parameter('x_bias').value
+        y_bias = self.get_parameter('y_bias').value
+
+        # Apply bias: shift the target point in the image
+        # Laser is 1 inch below and right of nose, so we want nose
+        # to appear ABOVE and LEFT of center -> negative bias on both
+        adjusted_x = err.x + x_bias
+        adjusted_y = err.y + y_bias
+
         deadband = self.get_parameter('deadband').value
         max_step = self.get_parameter('max_step').value
 
-        d_pan = self.get_parameter('pan_gain').value * err.x \
-            if abs(err.x) > deadband else 0.0
-        d_tilt = self.get_parameter('tilt_gain').value * err.y \
-            if abs(err.y) > deadband else 0.0
-        d_pan = max(-max_step, min(max_step, d_pan))
+        d_pan = self.get_parameter('pan_gain').value * adjusted_x \
+            if abs(adjusted_x) > deadband else 0.0
+        d_tilt = self.get_parameter('tilt_gain').value * adjusted_y \
+            if abs(adjusted_y) > deadband else 0.0
+
+        d_pan  = max(-max_step, min(max_step, d_pan))
         d_tilt = max(-max_step, min(max_step, d_tilt))
 
         if d_pan == 0.0 and d_tilt == 0.0:
-            return  # centered -> nothing to do
+            return
 
         target = {n: self.joint_pos[n] for n in JOINT_NAMES}
         target['lbr_A1'] = self._clamp('lbr_A1', target['lbr_A1'] + d_pan)
@@ -91,7 +99,7 @@ class FaceTrackerController(Node):
         traj.joint_names = JOINT_NAMES
         pt = JointTrajectoryPoint()
         pt.positions = [target[n] for n in JOINT_NAMES]
-        pt.time_from_start = Duration(sec=0, nanosec=200_000_000)  # 0.2 s
+        pt.time_from_start = Duration(sec=0, nanosec=200_000_000)
         traj.points = [pt]
         self.traj_pub.publish(traj)
 
@@ -109,7 +117,10 @@ def main(args=None):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':
